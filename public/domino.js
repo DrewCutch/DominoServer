@@ -8,7 +8,7 @@ const actionSpace = document.getElementById("action-space");
 const actionMessage = document.getElementById("action-message");
 const actionButton = document.getElementById("action-button");
 
-const socket = io("ws://localhost:3000");
+const socket = io();
 
 var myPlayer;
 var myGameState;
