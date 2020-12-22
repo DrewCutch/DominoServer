@@ -1,0 +1,153 @@
+.domino{
+    position: absolute;
+    width: 50px;
+    height: 110px;
+    background-color: whitesmoke;
+    border: 2px solid black;
+    border-radius: 4px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.domino.must-be-satisfied{
+    border-color: red;
+}
+
+.domino > img:nth-child(odd){
+    width: 100%;
+    height: 50px;
+}
+
+.domino > img:nth-child(even){
+    width: 100%;
+    height: 10px;
+}
+
+.train-domino{
+    position: static !important;
+    flex-shrink: 0;
+}
+
+#action-space{
+    width: 100px;
+    height: 100px;
+
+    background-color: brown;
+
+    /* center at bottom of parent div*/
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    margin-left: -50px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#action-message{
+    text-align: center;
+    height: 40%;
+}
+
+#action-button{
+    width: 80%;
+    height: 40%;
+}
+
+#game-log{
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 300px;
+
+    min-height: 150px;
+    height: 30%;
+
+    display: flex;
+    flex-direction: column;
+    align-content: flex-end;
+    justify-content: flex-end;
+
+    overflow-y: scroll;
+}
+
+#game-log > p{
+    width: 100%;
+    color: white;
+}
+
+#game-space{
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+    
+    width: 100%;
+    height: 100%;
+
+    border: 2px solid black;
+}
+
+#upper-space{
+    position: relative;
+
+    width: 100%;
+    background-color: green;
+    flex-grow: 1;
+}
+
+#hand-space{
+    flex-grow: 1;
+    width: 100%;
+    max-height: 300px;
+
+    background-color: beige;
+}
+
+#train-space{
+    display: flex;
+    
+    justify-content: space-evenly;
+}
+
+.train{
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+
+    background-color: burlywood;
+}
+
+.train-container{
+    display: flex;
+    height: 200px;
+    width: 108px;
+}
+
+.train-lane{
+    display: flex;
+    flex-direction: column-reverse;
+    overflow: hidden;
+
+    width: 50%;
+    height: 100%;
+}
+
+.train-info{
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.train-name{
+    
+}
+
+.train-icon{
+    border-radius: 50%;
+    height: 80%;
+}

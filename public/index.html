@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dominoes</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="domino.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="stylesheet" href="rotate.css">
+</head>
+<body>
+    <div class="modal" id="setup-modal">
+        <div class="modal-content" id="setup-modal-content">
+            <form id="setup-form" onsubmit="return onSetup();">
+                <label for="setup-player-name">Player Name:</label><br>
+                <input type="text" id="setup-player-name" name="playerName"><br><br>
+
+                <label for="setup-game-name">Game Name:</label><br>
+                <input type="text" id="setup-game-name" name="gameName"><br><br>
+
+                <label for="setup-game-size">Number of players:</label><br>
+                <input type="number" id="setup-game-size" name="gameSize"><br><br>
+
+                <button onclick="this.form.submitted = this.value;" type="submit" name="action" value="createGame">Create Game</button>
+                <button onclick="this.form.submitted = this.value;" type="submit" name="action" value="joinGame">Join Game</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="game-space">
+        <div id="upper-space">
+            <div id="train-space">
+            
+            </div>
+            <div id="game-log">
+            </div>
+            <div id="action-space" style="display: none;">
+                <h3 id="action-message">You do not have a play.</h3>
+                <button id="action-button"> Draw </button>
+            </div>
+        </div>
+
+        <div id="hand-space">
+
+        </div>
+    </div>
+</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js"></script>
+<script src="CommunicationModels.js"></script>
+<script src="rotate.js"></script>
+<script src="domino.js"></script>

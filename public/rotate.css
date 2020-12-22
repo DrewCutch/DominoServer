@@ -1,0 +1,56 @@
+
+.normal-transition{
+    transition: transform .5s;
+    transform: rotate(0deg);
+}
+
+.normal-negative-transition{
+    transition: transform .5s;
+    transform: rotate(-360deg);
+}
+
+.normal{
+    transform: rotate(0deg);
+}
+
+.left-transition{
+    transition: transform .5s;
+    transform: rotate(270deg);
+}
+
+.left-negative-transition{
+    transition: transform .5s;
+    transform: rotate(-90deg);
+}
+
+.left{
+    transform: rotate(-90);
+}
+
+.right-transition{
+    transition: transform .5s;
+    transform: rotate(90deg);
+}
+
+.right-negative-transition{
+    transition: transform .5s;
+    transform: rotate(-270deg);
+}
+
+.right{
+    transform: rotate(90);
+}
+
+.flipped-transition{
+    transition: transform .5s;
+    transform: rotate(180deg);
+}
+
+.flipped-negative-transition{
+    transition: transform .5s;
+    transform: rotate(-180deg);
+}
+
+.flipped{
+    transform: rotate(180)
+}
