@@ -1,0 +1,9 @@
+{
+    "name": "domino-server",
+    "version": "0.0.1",
+    "description": "Server for simple domino game",
+    "dependencies": {
+        "express": "^4.17.1",
+        "socket.io": "^3.0.4"
+    }
+}
