@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //app.listen(3000);
 
-http.listen(3000, () => {
+http.listen(3000, "192.168.1.7", () => {
     console.log('listening on *:3000');
 });
 
@@ -154,10 +154,15 @@ function getPlayOptions(player){
     const game = gameStates[player.currentGameId];
     const playOptions = new Set();
 
-    for(const train of game.state.trains){
-        if(train.player.id == player.info.id || train.trainIsUp){
-            playOptions.add(getTrainValue(train));
+    if(game.state.mustBeSatisfied == -1){
+        for(const train of game.state.trains){
+            if(train.player.id == player.info.id || train.trainIsUp){
+                playOptions.add(getTrainValue(train));
+            }
         }
+    }
+    else{
+        playOptions.add(getTrainValue(game.state.trains[game.state.mustBeSatisfied]));
     }
 
     return playOptions;
@@ -168,13 +173,8 @@ function hasPlay(player){
     const hand = game.playerHands[player.info.id];
     const playOptions = getPlayOptions(player);
 
-    //console.log(playOptions);
-    //console.log(hand);
 
     for (const domino of hand.dominos) {
-        //console.log("playOptions.has(domino.firstValue): " + playOptions.has(domino.firstValue));
-        //console.log("playOptions.has(domino.secondValue): " + playOptions.has(domino.secondValue));
-        
         if(playOptions.has(domino.firstValue) || playOptions.has(domino.secondValue)){
             return true;
         }
@@ -228,7 +228,7 @@ function startGame(gameState){
     }
     
 
-    logToGame(new models.LogMessage("Server", "Game is full, starting now"), gameState.game);
+    logToGame(new models.LogMessage("Game", "Game is full, starting now"), gameState.game);
 
     advanceRound(gameState);
     advanceTurn(gameState);
@@ -246,6 +246,11 @@ function advanceRound(gameState){
     }
 
     for (const player of gameState.game.players) {
+        gameState.state.playerDominoCounts[player.info.id] = 0;
+        gameState.playerHands[player.info.id] = new models.PlayerHand([]);
+    }
+    
+    for (const player of gameState.game.players) {
         io.to(player.socketId).emit("round-start", gameState.game, gameState.getPlayerGameState(player));
     }
 
@@ -255,13 +260,11 @@ function advanceRound(gameState){
         }
     }
 
-    logToGame(new models.LogMessage("Server", "Starting round " + (gameState.state.round + 1)), gameState.game);
+    logToGame(new models.LogMessage("Game", "Starting round " + (gameState.state.round + 1)), gameState.game);
 }
 
 function advanceTurn(gameState){
     gameState.state.turn = (gameState.state.turn + 1) % gameState.game.players.length;
-
-    gameState.state.mustBeSatisfied = gameState.state.pendingSatisfied;
 
     for (const player of gameState.game.players) {
         io.to(player.socketId).emit("turn", gameState.getPlayerGameState(player));
@@ -320,13 +323,14 @@ function onJoinGame(socket, gameId, playerConfig){
     game.players.push(player);
     gameState.state.trains.push(new models.TrainState(player.info, [], [], false));
     gameState.playerHands[player.info.id] = new models.PlayerHand([]);
+    gameState.state.playerDominoCounts[player.info.id] = 0;
     gameState.state.scores.push(0);
 
     socket.join(gameId);
 
     socket.to(gameId).emit("game-joined", player.info);
 
-    logToGame(new models.LogMessage("Server", player.info.name + " joined the game"), gameState.game);
+    logToGame(new models.LogMessage("Game", player.info.name + " joined the game"), gameState.game);
 
     if(game.players.length === game.config.maxPlayers){
         startGame(gameState);
@@ -375,17 +379,17 @@ function onPlay(socket, play){
     }
 
     if(train.player.id === player.info.id){
-        console.log("Train is down.");
         train.trainIsUp = false;
     }
 
+    gameState.state.mustBeSatisfied = gameState.state.pendingSatisfied;
 
     for (const player of gameState.game.players) {
         io.to(player.socketId).emit("play", play, gameState.getPlayerGameState(player));
     }
 
     // Round is over
-    if(gameState.playerHands[player.info.id].length == 0){
+    if(gameState.playerHands[player.info.id].dominos.length == 0){
         advanceRound(gameState);
     }
     else if(!roundIsPlayable(gameState)){
@@ -398,6 +402,11 @@ function onPlay(socket, play){
 }
 
 function onDraw(socket){
+    if(!(socket.id in players)){
+        //TODO: handle errors
+        return;
+    }
+
     const player = players[socket.id];
     const gameState = gameStates[player.currentGameId]
 
@@ -410,6 +419,10 @@ function onDraw(socket){
 
     if(!hasPlay(player)){
         gameState.state.trains[player.info.id + 1].trainIsUp = true;
+        logToGame(new models.LogMessage("Game", player.info.name + "'s train is up"), gameState.game);
         advanceTurn(gameState);
     }
 }
+
+// Feature: rotate starting position
+// 

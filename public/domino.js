@@ -90,7 +90,10 @@ socket.on("turn", (gameState) => {
     updateTrains();
 
     if(gameState.game.turn == myPlayer.id){
-        log(new LogMessage("Local", "It is your turn."));
+        log(new LogMessage("Game", "It is your turn."));
+    }
+    else{
+        log(new LogMessage("Game", "It is " + trains[gameState.game.turn + 1].state.player.name + "'s turn."));
     }
 
     checkToDraw();
@@ -141,7 +144,7 @@ function updateTrains(){
         }
         trains[i].titleElement.innerHTML = 
             "<p>" + trains[i].state.player.name + "</p>" +
-            "<p>Score: " + myGameState.game.scores[i - 1] + "</p>"
+            "<p>Score: " + myGameState.game.scores[i - 1] + "</p>" +
             "<p>Dominos: " + myGameState.game.playerDominoCounts[i - 1] + "</p>";
         ;
     }
@@ -341,8 +344,8 @@ function Train(trainState){
         if(myGameState.game.mustBeSatisfied === self.state.id){
             self.localDominos[self.localDominos.length - 1].domElement.classList.add("must-be-satisfied");
         }
-        else if(self.localDominos.length > 0){
-            self.localDominos[self.localDominos.length - 1].domElement.classList.remove("must-be-satisfied");
+        else if(self.localDominos.length > 1){
+            self.localDominos[self.localDominos.length - 2].domElement.classList.remove("must-be-satisfied");
         }
     }
 
@@ -395,6 +398,7 @@ function flipDominoToValue(domino, value){
 
 function addDominoToTrain(domino, train){
     domino.domElement.classList.add("train-domino");
+    domino.state = DominoStates.Played;
 
     // Alternate left and right container
     const trainContainer = train.domElement.children[0].children[train.localDominos.length % 2];
@@ -474,7 +478,12 @@ function Domino(value){
     this._right = true;
 
     self.dragManager.onStartDrag = function(pos){
+        if(self.state == DominoStates.Played){
+            return;
+        }
+
         self._startDrag = pos;
+        self.state = DominoStates.Dragging;
 
         if(self.domElement.style.zIndex < highestZIndex){
             highestZIndex += 1;
@@ -483,11 +492,13 @@ function Domino(value){
     }
 
     self.dragManager.onDrag = function(pos){
+        if(self.state != DominoStates.Dragging){
+            return;
+        }
+
         const trainWidth = trainSpace.offsetWidth / trains.length;
         const nearestTrainIndex = Math.floor(pos.x / trainWidth);
         const nearestTrain = trains[nearestTrainIndex];
-
-
 
         if(pos.y < 300 && nearestTrain.canPlay(self.value)){
             flipDominoToValue(self, nearestTrain.currentValue());
@@ -500,6 +511,10 @@ function Domino(value){
     }
 
     self.dragManager.onEndDrag = function(pos){
+        if(self.state != DominoStates.Dragging){
+            return;
+        }
+
         // Allow user to bring domino into hand space
         if(pos.y >= handSpace.offsetTop){
             return;
@@ -514,6 +529,7 @@ function Domino(value){
             playDomino(self, nearestTrain);
         }
         else{
+            self.state = DominoStates.InHand;
             self.dragManager.setPosition(self._startDrag);
             setOrientation(self.domElement, Direction.Right);
         }
