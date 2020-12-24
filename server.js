@@ -9,49 +9,41 @@ var path = require('path');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.listen(3000);
+//app.listen("192.168.1.7");
 
-http.listen(3000, "192.168.1.7", () => {
+http.listen(3000, () => {
     console.log('listening on *:3000');
 });
 
-const gameStates = {}
-const players = {}
-const dominoLookUp = {}
+const gameStates = {};
+const players = {};
 
-function generateDominoLookUp(gameConfig){
-    // Return if lookup already generated
-    if(gameConfig.maxDominoValue in dominoLookUp){
-        return;
-    }
+function DominoPool(config){
+    const self = this;
 
-    const dominos = [];
-    var id = 0;
-    
-    for(var i = 0; i <= gameConfig.maxDominoValue; i++){
-        for(var j = i; j <= gameConfig.maxDominoValue; j++){
-            dominos.push(new models.DominoValue(i, j));
-            id += 1;
+    this.dominos = []
+
+    for(var i = 0; i <= config.maxDominoValue; i++){
+        for(var j = i; j <= config.maxDominoValue; j++){
+            this.dominos.push(new models.DominoValue(i, j));
         }
     }
 
-    dominoLookUp[gameConfig.maxDominoValue] = dominos;
-}
+    this.draw = function(){
+        const i = Math.floor( Math.random() * (self.dominos.length - 1));
 
-function DominoPool(config){
-    const highestNumber = config.maxDominoValue;
-    const numberOfDominos = (highestNumber * highestNumber + (3 * highestNumber) + 2) / 2;
-    this.dominos = new Array(numberOfDominos);
-
-    for(var i = 0; i < numberOfDominos; i++){
-        this.dominos[i] = i + 1;
+        return self.dominos.splice(i, 1)[0];
     }
 
-    this.draw = function(){
-        const i = Math.floor( Math.random() * (this.dominos.length - 1) );
-        const id = this.dominos.splice(i, 1)[0];
+    this.remove = function(dominoValue){
+        for (var i = 0; i < self.dominos.length; i++) {
+            const value = self.dominos[i];
 
-        return dominoLookUp[highestNumber][id];
+            if(value.firstValue == dominoValue.firstValue && value.secondValue == dominoValue.secondValue){
+                self.dominos.splice(i, 1)[0];
+                return;
+            }
+        }
     }
 }
 
@@ -62,8 +54,6 @@ function GameState(game){
     this.state = new models.GameState([], 0);
     this.dominoPool = new DominoPool(game.config);
     this.playerHands = [];
-
-    generateDominoLookUp(game.config);
 
     for (const domino of this.dominoPool.dominos) {
         this.state.remainingDominoValues[domino.firstValue] += 1;
@@ -104,6 +94,7 @@ function GameState(game){
 
 function createGameState(id, gameConfig){
     const newGameState = new GameState(new models.Game(id, gameConfig));
+    newGameState.state.round = gameConfig.startingRound - 2;
     gameStates[id] = newGameState;
 
     newGameState.state.trains.push(new models.TrainState(new models.Player("MEXICAN", -1), [], [], true));
@@ -201,7 +192,7 @@ function roundIsPlayable(gameState){
         const playOptions = getPlayOptions(player);
 
         for (const domino of gameState.dominoPool.dominos) {
-            const dominoValue = dominoLookUp[gameState.game.config.maxDominoValue][domino];
+            const dominoValue = domino;
 
             if(playOptions.has(dominoValue.firstValue) || playOptions.has(dominoValue.secondValue)){
                 return true;
@@ -234,13 +225,33 @@ function startGame(gameState){
     advanceTurn(gameState);
 }
 
+function endGame(gameState){
+    console.log("Game " + gameState.game.id + " is over");
+
+    gameState.state.round = -1;
+
+    for (const player of gameState.game.players) {
+        io.to(player.socketId).emit("game-end", gameState.getPlayerGameState(player));
+    }
+
+    delete gameStates[gameState.game.id];
+}
+
 function advanceRound(gameState){
     gameState.advanceRound();
 
     const doubleValue = gameState.game.config.maxDominoValue - gameState.state.round;
+    const startDomino = new models.DominoValue(doubleValue, doubleValue);
     
+    if(doubleValue == -1){
+        endGame(gameState);
+        return;
+    }
+
+    gameState.dominoPool.remove(startDomino);
+
     for (const train of gameState.state.trains) {
-        train.dominos = [new models.DominoValue(doubleValue, doubleValue)];
+        train.dominos = [startDomino];
         train.flipped = [false];
         train.trainIsUp = train.player.id == -1; // Train is only up on mexican
     }
@@ -287,7 +298,7 @@ io.on("connection", (socket) => {
         onJoinGame(socket, gameId, playerConfig);
     });
 
-    socket.on("create-game", (gameId, gameConfig, playerConfig) => {
+    socket.on("create-game", (gameId, gameConfig) => {
         onCreateGame(socket, gameId, gameConfig);
     });
 
@@ -324,7 +335,7 @@ function onJoinGame(socket, gameId, playerConfig){
     gameState.state.trains.push(new models.TrainState(player.info, [], [], false));
     gameState.playerHands[player.info.id] = new models.PlayerHand([]);
     gameState.state.playerDominoCounts[player.info.id] = 0;
-    gameState.state.scores.push(0);
+    gameState.state.scores.push(playerConfig.startingScore);
 
     socket.join(gameId);
 

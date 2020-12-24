@@ -1,5 +1,6 @@
-function PlayerConfig(name){
+function PlayerConfig(name, startingScore){
     this.name = name;
+    this.startingScore = startingScore;
 }
 
 function Player(name, id){
@@ -7,7 +8,8 @@ function Player(name, id){
     this.id = id;
 }
 
-function GameConfig(maxDominoValue, maxPlayers){
+function GameConfig(maxDominoValue, maxPlayers, startingRound){
+    this.startingRound = startingRound;
     this.maxDominoValue = maxDominoValue;
     this.maxPlayers = maxPlayers;
 }

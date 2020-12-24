@@ -8,6 +8,9 @@ const actionSpace = document.getElementById("action-space");
 const actionMessage = document.getElementById("action-message");
 const actionButton = document.getElementById("action-button");
 
+const scoreTable = document.getElementById("score-table");
+const scoreModal = document.getElementById("score-modal");
+
 const socket = io();
 
 var myPlayer;
@@ -16,25 +19,61 @@ var highestZIndex = 1;
 
 function trySetupFromURL(){
     let params = new URLSearchParams(location.search);
-
+    
     if(!params.has("playerName") || !params.has("gameName")){
         return;
     }
 
-    joinGame(new PlayerConfig(params.get("playerName")), params.get("gameName"));
+    joinGame(params.get("gameName"), new PlayerConfig(params.get("playerName"), 0));
 }
 
-trySetupFromURL();
-
 function onSetup(){
-    const playerConfig = new PlayerConfig(setupForm.playerName.value);
+    const playerConfig = new PlayerConfig(setupForm.playerName.value, parseInt(setupForm.startScore.value));
 
     if(setupForm.submitted === "createGame"){
-        createGame(setupForm.gameName.value, new GameConfig(12, parseInt(setupForm.gameSize.value)));
+        createGame(setupForm.gameName.value, 
+            new GameConfig(12, parseInt(setupForm.gameSize.value), parseInt(setupForm.startRound.value)));
     }
     joinGame(setupForm.gameName.value, playerConfig);
 
     return false;
+}
+
+function Sound(src, maxSimultaneous = 5){
+    const soundElements = [];
+
+    for(var n = 0; n < maxSimultaneous; n++){
+        const soundElement = document.createElement("audio");
+        soundElement.src = src;
+        soundElement.setAttribute("preload", "auto");
+        soundElement.setAttribute("controls", "none");
+
+        soundElements.push(soundElement);
+    }
+    var i = 0;
+
+    this.play = function(){
+        soundElements[i].play();
+
+        i = (i + 1) % soundElements.length;
+    }
+}
+
+const sounds = {
+    onPlay: new function(){
+        const sounds = [
+            new Sound("assets/sounds/play1.mp3"),
+            new Sound("assets/sounds/play2.mp3"),
+            new Sound("assets/sounds/play3.mp3"),
+            new Sound("assets/sounds/play4.mp3")
+        ];
+
+        this.play = () => {
+            sounds[Math.floor(Math.random() * sounds.length)].play();
+        };
+    },
+    oneLeft: new Sound("assets/sounds/oneLeft.mp3", 1),
+    draw: new Sound("assets/sounds/draw.mp3")
 }
 
 function createGame(gameName, gameConfig){
@@ -47,7 +86,8 @@ function joinGame(gameName, playerConfig){
 
 
 socket.on("connect", () => {
-    console.log("connected")
+    console.log("connected");
+    trySetupFromURL();
 });
 
 const trains = [];
@@ -68,6 +108,8 @@ socket.on("game-start", (game, gameState) => {
     for(const trainState of gameState.game.trains){
         trains.push(new Train(trainState));
     }
+
+    setupScoreBoard(game);
 });
 
 socket.on("domino-give", (gameState, dominoValue) => {
@@ -85,7 +127,13 @@ socket.on("domino-give", (gameState, dominoValue) => {
 });
 
 socket.on("turn", (gameState) => {
+    const previousTurn = myGameState.game.turn;
+
     myGameState = gameState;
+
+    if(myGameState.game.playerDominoCounts[previousTurn] == 1){
+        sounds.oneLeft.play();
+    }
 
     updateTrains();
 
@@ -103,6 +151,8 @@ socket.on("play", (play, gameState) => {
     //TODO: check gameState accuracy
     myGameState = gameState;
 
+    sounds.onPlay.play();
+
     const train = trains[play.train.id];
 
     train.update(play.train);
@@ -114,6 +164,8 @@ socket.on("round-start", (game, gameState) => {
     destroyAllDominoElements();
 
     myGameState = gameState;
+
+    updateScoreBoard();
 
     for (const train of trains) {
         train.localDominos = [];
@@ -134,6 +186,61 @@ socket.on("log", (logMessage) => {
     log(logMessage);
 });
 
+socket.on("game-end", (gameState) => {
+    myGameState = gameState;
+
+    updateScoreBoard();
+    
+    scoreModal.style.display = null;
+})
+
+function setupScoreBoard(game){
+    const tableRow = document.createElement("tr");
+    var rowContents = "<th></th>";
+
+    for (const player of game.players) {
+        rowContents += "<th>" + player.info.name + "</th>";    
+    }
+    
+    tableRow.innerHTML = rowContents;
+
+    scoreTable.appendChild(tableRow);
+}
+
+function updateScoreBoard(){
+    const tableRow = document.createElement("tr");
+
+    var rowContents = "<th> Round " + (myGameState.game.round + 1) + "</th>";
+
+    for (const score of myGameState.game.scores) {
+        rowContents += "<td>" + score + "</td>";    
+    }
+    
+    tableRow.innerHTML = rowContents;
+
+    scoreTable.appendChild(tableRow);
+}
+
+function clickOutsideScoreModal(e){
+    // If game is over, cannot close score window
+    if(myGameState.round == -1){
+        return;
+    }
+
+    // If didn't click outside content
+    if(e.target != scoreModal){
+        return;
+    }
+
+    scoreModal.style.display = "none";
+}
+
+function onCheckScoreClicked(){
+    scoreModal.style.display = null;
+}
+
+
+
 function updateTrains(){
     for(var i = 0; i < myGameState.game.trains.length; i++){
         trains[i].update(myGameState.game.trains[i]);
@@ -151,6 +258,8 @@ function updateTrains(){
 }
 
 function draw(){
+    sounds.draw.play();
+
     socket.emit("draw");
 }
 

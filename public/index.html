@@ -14,18 +14,35 @@
     <div class="modal" id="setup-modal">
         <div class="modal-content" id="setup-modal-content">
             <form id="setup-form" onsubmit="return onSetup();">
-                <label for="setup-player-name">Player Name:</label><br>
-                <input type="text" id="setup-player-name" name="playerName"><br><br>
+                <div>
+                    <label for="setup-player-name">Player Name:</label><br>
+                    <input type="text" id="setup-player-name" name="playerName"><br><br>
 
-                <label for="setup-game-name">Game Name:</label><br>
-                <input type="text" id="setup-game-name" name="gameName"><br><br>
+                    <label for="setup-game-name">Game Name:</label><br>
+                    <input type="text" id="setup-game-name" name="gameName"><br><br>
 
-                <label for="setup-game-size">Number of players:</label><br>
-                <input type="number" id="setup-game-size" name="gameSize"><br><br>
+                    <label for="setup-game-name">Starting Score:</label><br>
+                    <input type="text" id="setup-start-score" name="startScore" value="0"><br><br>
+                    <button onclick="this.form.submitted = this.value;" class="submit-btn" type="submit" name="action" value="joinGame">Join Game</button>
+                </div>
+                <div>
+                    <label for="setup-game-name">Starting Round:</label><br>
+                    <input type="text" id="setup-start-round" name="startRound" value="1"><br><br>
 
-                <button onclick="this.form.submitted = this.value;" type="submit" name="action" value="createGame">Create Game</button>
-                <button onclick="this.form.submitted = this.value;" type="submit" name="action" value="joinGame">Join Game</button>
+                    <label for="setup-game-size">Number of players:</label><br>
+                    <input type="number" id="setup-game-size" name="gameSize"><br><br>
+
+                    <button onclick="this.form.submitted = this.value;" class="submit-btn" type="submit" name="action" value="createGame">Create Game</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <div class="modal" id="score-modal" style="display: none;" onclick="clickOutsideScoreModal(event);">
+        <div class="modal-content" id="score-modal-content">
+            <h2>Score</h2>
+            <table id="score-table">
+            </table>
         </div>
     </div>
 
@@ -40,6 +57,8 @@
                 <h3 id="action-message">You do not have a play.</h3>
                 <button id="action-button"> Draw </button>
             </div>
+
+            <button id="score-btn" onclick="onCheckScoreClicked();">Scoreboard</button>
         </div>
 
         <div id="hand-space">
