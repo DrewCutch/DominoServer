@@ -626,8 +626,10 @@ function Domino(value){
 
         // Allow user to bring domino into hand space
         if(pos.y >= handSpace.offsetTop){
+            self.state = DominoStates.InHand;
             return;
         }
+        
         const trainWidth = trainSpace.offsetWidth / trains.length;
         const nearestTrainIndex = Math.floor(pos.x / trainWidth);
         const nearestTrain = trains[nearestTrainIndex];

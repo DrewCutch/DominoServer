@@ -266,7 +266,7 @@ function advanceRound(gameState){
     }
 
     for(const player of gameState.game.players){
-        for(var i = 0; i < 5; i++){ // TODO: return to 15
+        for(var i = 0; i < 15; i++){ // TODO: return to 15
             drawDomino(gameState, player);
         }
     }
