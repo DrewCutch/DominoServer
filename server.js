@@ -276,6 +276,7 @@ function advanceRound(gameState){
 
 function advanceTurn(gameState){
     gameState.state.turn = (gameState.state.turn + 1) % gameState.game.players.length;
+    gameState.state.mustBeSatisfied = gameState.state.pendingSatisfied;
 
     for (const player of gameState.game.players) {
         io.to(player.socketId).emit("turn", gameState.getPlayerGameState(player));
@@ -392,9 +393,6 @@ function onPlay(socket, play){
     if(train.player.id === player.info.id){
         train.trainIsUp = false;
     }
-
-    gameState.state.mustBeSatisfied = gameState.state.pendingSatisfied;
-
     for (const player of gameState.game.players) {
         io.to(player.socketId).emit("play", play, gameState.getPlayerGameState(player));
     }

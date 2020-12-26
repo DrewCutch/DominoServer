@@ -208,9 +208,13 @@ function setupScoreBoard(game){
 }
 
 function updateScoreBoard(){
+    if(myGameState.game.round == 0){
+        return;
+    }
+
     const tableRow = document.createElement("tr");
 
-    var rowContents = "<th> Round " + (myGameState.game.round + 1) + "</th>";
+    var rowContents = "<th> Round " + (myGameState.game.round) + "</th>";
 
     for (const score of myGameState.game.scores) {
         rowContents += "<td>" + score + "</td>";    
@@ -629,7 +633,7 @@ function Domino(value){
             self.state = DominoStates.InHand;
             return;
         }
-        
+
         const trainWidth = trainSpace.offsetWidth / trains.length;
         const nearestTrainIndex = Math.floor(pos.x / trainWidth);
         const nearestTrain = trains[nearestTrainIndex];
