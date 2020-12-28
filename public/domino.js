@@ -464,8 +464,8 @@ function Train(trainState){
 
     this.canPlay = (dominoValue) => {
         return (self.currentValue() === dominoValue.firstValue || self.currentValue() === dominoValue.secondValue)
-        && (myPlayer.id === self.state.player.id || self.state.trainIsUp) 
-        && (myGameState.game.mustBeSatisfied === -1 || myGameState.game.mustBeSatisfied === self.state.id);
+        && (((myPlayer.id === self.state.player.id || self.state.trainIsUp) && myGameState.game.mustBeSatisfied === -1) 
+        || myGameState.game.mustBeSatisfied === self.state.id);
     }
 
     this.update(trainState);
