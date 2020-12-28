@@ -132,7 +132,7 @@ socket.on("turn", (gameState) => {
     myGameState = gameState;
 
     if(myGameState.game.playerDominoCounts[previousTurn] == 1){
-        sounds.oneLeft.play();
+        setTimeout(sounds.oneLeft.play, 1000); // Play a second later to not overlap play sound
     }
 
     updateTrains();
