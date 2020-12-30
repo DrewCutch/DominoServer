@@ -638,8 +638,7 @@ function Domino(value){
         const nearestTrainIndex = Math.floor(pos.x / trainWidth);
         const nearestTrain = trains[nearestTrainIndex];
 
-        if(myGameState.game.turn === myPlayer.id && 
-            (nearestTrain.state.player.id === myPlayer.id || nearestTrain.state.trainIsUp) &&
+        if(myGameState.game.turn === myPlayer.id &&
             nearestTrain.canPlay(self.value)){
             playDomino(self, nearestTrain);
         }
