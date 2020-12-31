@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //app.listen("192.168.1.7");
 
-http.listen(80, "192.168.1.7", () => {
+http.listen(80, () => {
     console.log('listening on *:80');
 });
 
@@ -220,7 +220,7 @@ function startGame(gameState){
     
 
     logToGame(new models.LogMessage("Game", "Game is full, starting now"), gameState.game);
-    
+
     gameState.advanceRound();
     startNextRound(gameState);
 
