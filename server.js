@@ -285,7 +285,7 @@ function startNextRound(gameState){
 function advanceRound(gameState){
     endRound(gameState);
     // 5 second wait between starting next round
-    setTimeout(() => startNextRound(gameState), 5000);
+    setTimeout(() => startNextRound(gameState), 10000);
 }
 
 function advanceTurn(gameState){
