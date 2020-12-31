@@ -10,6 +10,7 @@ const actionButton = document.getElementById("action-button");
 
 const scoreTable = document.getElementById("score-table");
 const scoreModal = document.getElementById("score-modal");
+const scoreModalMessage = document.getElementById("score-modal-message");
 
 const socket = io();
 
@@ -160,12 +161,29 @@ socket.on("play", (play, gameState) => {
     checkToDraw();
 });
 
-socket.on("round-start", (game, gameState) => {
-    destroyAllDominoElements();
-
+socket.on("round-end", (gameState) => {
     myGameState = gameState;
 
     updateScoreBoard();
+
+    for(var i = 0; i < gameState.game.playerDominoCounts.length; i++){
+        const dominoCount = gameState.game.playerDominoCounts[i];
+
+        if(dominoCount != 0){
+            continue;
+        }
+
+        setScoreBoardMessage(trains[i + 1].state.player.name + " went out!")
+    }
+    
+    setScoreBoardVisible(true);
+});
+
+socket.on("round-start", (game, gameState) => {
+
+    destroyAllDominoElements();
+
+    myGameState = gameState;
 
     for (const train of trains) {
         train.localDominos = [];
@@ -175,6 +193,9 @@ socket.on("round-start", (game, gameState) => {
     updateTrains();
 
     setCurrentActionOption(null);
+
+    setScoreBoardVisible(false);
+    setScoreBoardMessage(null);
 });
 
 socket.on("player-assign", (player) => {
@@ -190,8 +211,8 @@ socket.on("game-end", (gameState) => {
     myGameState = gameState;
 
     updateScoreBoard();
-    
-    scoreModal.style.display = null;
+
+    setScoreBoardVisible(true);
 })
 
 function setupScoreBoard(game){
@@ -236,13 +257,22 @@ function clickOutsideScoreModal(e){
         return;
     }
 
-    scoreModal.style.display = "none";
+    setScoreBoardVisible(false);
 }
 
 function onCheckScoreClicked(){
-    scoreModal.style.display = null;
+    setScoreBoardVisible(true);
 }
 
+function setScoreBoardMessage(message){
+    scoreModalMessage.style.display = (message != null) ? null : "none";
+
+    scoreModalMessage.innerText = message;
+}
+
+function setScoreBoardVisible(visible){
+    scoreModal.style.display = visible ? null : "none";
+}
 
 
 function updateTrains(){

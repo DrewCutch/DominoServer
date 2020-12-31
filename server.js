@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //app.listen("192.168.1.7");
 
-http.listen(80, () => {
+http.listen(80, "192.168.1.7", () => {
     console.log('listening on *:80');
 });
 
@@ -220,8 +220,10 @@ function startGame(gameState){
     
 
     logToGame(new models.LogMessage("Game", "Game is full, starting now"), gameState.game);
+    
+    gameState.advanceRound();
+    startNextRound(gameState);
 
-    advanceRound(gameState);
     advanceTurn(gameState);
 }
 
@@ -237,9 +239,15 @@ function endGame(gameState){
     delete gameStates[gameState.game.id];
 }
 
-function advanceRound(gameState){
+function endRound(gameState){
     gameState.advanceRound();
 
+    for (const player of gameState.game.players) {
+        io.to(player.socketId).emit("round-end", gameState.getPlayerGameState(player));
+    }
+}
+
+function startNextRound(gameState){
     const doubleValue = gameState.game.config.maxDominoValue - gameState.state.round;
     const startDomino = new models.DominoValue(doubleValue, doubleValue);
     
@@ -272,6 +280,12 @@ function advanceRound(gameState){
     }
 
     logToGame(new models.LogMessage("Game", "Starting round " + (gameState.state.round + 1)), gameState.game);
+}
+
+function advanceRound(gameState){
+    endRound(gameState);
+    // 5 second wait between starting next round
+    setTimeout(() => startNextRound(gameState), 5000);
 }
 
 function advanceTurn(gameState){
@@ -399,6 +413,7 @@ function onPlay(socket, play){
 
     // Round is over
     if(gameState.playerHands[player.info.id].dominos.length == 0){
+        logToGame(new models.LogMessage("Game", player.info.name + " went out!"), gameState.game);
         advanceRound(gameState);
     }
     else if(!roundIsPlayable(gameState)){
