@@ -211,6 +211,10 @@ function logToGame(message, game){
     io.in(game.id).emit("log", message);
 }
 
+function logToPlayer(message, player){
+    io.to(player.socketId).emit("log", message);
+}
+
 function startGame(gameState){
     console.log("Game " + gameState.game.id + " is full, starting now");
 
@@ -319,11 +323,16 @@ io.on("connection", (socket) => {
 
     socket.on("play", (play) =>{
         onPlay(socket, play);
-    })
+    });
 
     socket.on("draw", () =>{
         onDraw(socket);
-    })
+    });
+
+    socket.on('disconnect', function (reason) {
+        const player = players[socket.id];
+        console.log(player.info.name + ' disconnected because of ' + reason);
+    });
 });
 
 function assignPlayer(game, socket, playerConfig){
