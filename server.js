@@ -1,9 +1,19 @@
-var models = require("./public/CommunicationModels");
+const models = require("./public/CommunicationModels");
+const express = require('express')
+const session = require('express-session');
 
-var express = require('express')
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+
+const sessionMiddleware = session({ rolling: true, secret: 'not-secret', cookie: { maxAge: 60000 * 60 }});
+// register middleware in Express
+app.use(sessionMiddleware);
+// register middleware in Socket.IO
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
+
 
 var path = require('path');
 
@@ -132,11 +142,12 @@ function Player(socketId, playerInfo, currentGameId){
     this.currentGameId = currentGameId; 
 }
 
-function createPlayer(game, socketId, playerConfig){
+function createPlayer(game, socketId, session, playerConfig){
     const playerInfo = new models.Player(playerConfig.name, game.players.length);
     const newPlayer = new Player(socketId, playerInfo, game.id);
 
-    players[socketId] = newPlayer;
+    players[session] = newPlayer;
+    console.log(playerConfig.name + " assigned to session " + session);
 
     return newPlayer;
 }
@@ -311,7 +322,15 @@ function drawDomino(gameState, player){
 
 io.on("connection", (socket) => {
     console.log("user connected");
-    socket.emit("welcome", "welcome man");
+
+    const sessionId = socket.request.sessionID;
+
+    if(sessionId in players){
+        players[sessionId].socketId = socket.id;
+    }
+    else{
+        console.log("new session: " + sessionId);
+    }
 
     socket.on("join-game", (gameId, playerConfig) => {
         onJoinGame(socket, gameId, playerConfig);
@@ -334,13 +353,13 @@ io.on("connection", (socket) => {
             return;
         }
 
-        const player = players[socket.id];
+        const player = players[socket.request.sessionID];
         console.log(player.info.name + ' disconnected because of ' + reason);
     });
 });
 
 function assignPlayer(game, socket, playerConfig){
-    const player = createPlayer(game, socket.id, playerConfig);
+    const player = createPlayer(game, socket.id, socket.request.sessionID, playerConfig);
     socket.emit("player-assign", player.info);
 
     console.log("Player " + playerConfig.name + " created");
@@ -382,12 +401,12 @@ function onCreateGame(socket, gameId, gameConfig){
 }
 
 function onPlay(socket, play){
-    if(!(socket.id in players)){
+    if(!(socket.request.sessionID in players)){
         //TODO: handle errors
         return;
     }
 
-    const player = players[socket.id];
+    const player = players[socket.request.sessionID];
     const gameState = gameStates[player.currentGameId];
     const train = gameState.state.trains[play.train.id];
 
@@ -439,12 +458,12 @@ function onPlay(socket, play){
 }
 
 function onDraw(socket){
-    if(!(socket.id in players)){
+    if(!(socket.request.sessionID in players)){
         //TODO: handle errors
         return;
     }
 
-    const player = players[socket.id];
+    const player = players[socket.request.sessionID];
     const gameState = gameStates[player.currentGameId]
 
     if(player.info.id != gameState.state.turn){

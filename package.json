@@ -4,6 +4,7 @@
     "description": "Server for simple domino game",
     "dependencies": {
         "express": "^4.17.1",
+        "express-session": "^1.17.1",
         "socket.io": "^3.0.4"
     }
 }
