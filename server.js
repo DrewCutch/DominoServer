@@ -330,6 +330,10 @@ io.on("connection", (socket) => {
     });
 
     socket.on('disconnect', function (reason) {
+        if(!(socket.id in players)){
+            return;
+        }
+
         const player = players[socket.id];
         console.log(player.info.name + ' disconnected because of ' + reason);
     });
