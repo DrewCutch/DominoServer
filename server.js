@@ -40,6 +40,10 @@ function DominoPool(config){
     }
 
     this.draw = function(){
+        if(self.dominos.length == 0){
+            return null;
+        }
+
         const i = Math.floor( Math.random() * (self.dominos.length - 1));
 
         return self.dominos.splice(i, 1)[0];

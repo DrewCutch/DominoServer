@@ -115,6 +115,11 @@ socket.on("game-start", (game, gameState) => {
 });
 
 socket.on("domino-give", (gameState, dominoValue) => {
+    if(dominoValue == null){
+        log(new LogMessage("Game", "No more dominos, you pass."));
+        return;
+    }
+
     myGameState = gameState;
 
     const newDomino = new Domino(dominoValue);
@@ -129,7 +134,7 @@ socket.on("domino-give", (gameState, dominoValue) => {
         highestZIndex += 1;
         newDomino.domElement.style.zIndex = highestZIndex;
     }
-    
+
     checkToDraw();
 });
 
