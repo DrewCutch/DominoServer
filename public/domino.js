@@ -73,6 +73,7 @@ const sounds = {
             sounds[Math.floor(Math.random() * sounds.length)].play();
         };
     },
+    trainUp: new Sound("assets/sounds/trainUp.mp3", 1),
     oneLeft: new Sound("assets/sounds/oneLeft.mp3", 1),
     draw: new Sound("assets/sounds/draw.mp3")
 }
@@ -124,6 +125,11 @@ socket.on("domino-give", (gameState, dominoValue) => {
         newDomino.domElement.style.left = 
         (handSpace.offsetLeft + Math.floor(Math.random() * (handSpace.offsetWidth - newDomino.domElement.offsetHeight))) + "px";
 
+    if(newDomino.domElement.style.zIndex < highestZIndex){
+        highestZIndex += 1;
+        newDomino.domElement.style.zIndex = highestZIndex;
+    }
+    
     checkToDraw();
 });
 
@@ -475,9 +481,16 @@ function Train(trainState){
     }
 
     this.update = (newTrainState) => {
+        const putUpTrain = (!self.state.trainIsUp) && newTrainState.trainIsUp;
+
         self.state.trainIsUp = newTrainState.trainIsUp;
 
         self.trainElement.style.display = self.state.trainIsUp ? "block" : "none";
+
+        if(putUpTrain){
+            self.trainElement.classList.add("pop-in");
+            sounds.trainUp.play();
+        }
 
         for(var i = self.state.dominos.length; i < newTrainState.dominos.length; i++){
             const newDomino = new Domino(newTrainState.dominos[i]);

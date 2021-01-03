@@ -327,6 +327,7 @@ io.on("connection", (socket) => {
 
     if(sessionId in players){
         players[sessionId].socketId = socket.id;
+        console.log(players[sessionId].info.name + " reconnected");
     }
     else{
         console.log("new session: " + sessionId);
@@ -353,7 +354,7 @@ io.on("connection", (socket) => {
             return;
         }
 
-        const player = players[socket.request.sessionID];
+        const player = players[sessionId];
         console.log(player.info.name + ' disconnected because of ' + reason);
     });
 });
