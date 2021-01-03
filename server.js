@@ -349,7 +349,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on('disconnect', function (reason) {
-        if(!(socket.id in players)){
+        if(!(sessionId in players)){
             return;
         }
 
