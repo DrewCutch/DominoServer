@@ -467,8 +467,10 @@ function Train(trainState){
     this.domElement = createTrainElement();
     this.localDominos = [];
 
-    this.titleElement = self.domElement.children[1].children[0];
-    this.trainElement = self.domElement.children[1].children[1];
+    this.titleElement = self.domElement.children[0].children[1].children[0];
+    this.trainElement = self.domElement.children[0].children[1].children[1];
+
+    this.turnMarker = self.domElement.children[1];
 
     this.clear = () => {
         self.localDominos = [];
@@ -508,6 +510,18 @@ function Train(trainState){
         else if(self.localDominos.length > 1){
             self.localDominos[self.localDominos.length - 2].domElement.classList.remove("must-be-satisfied");
         }
+
+        const myTurn = myGameState.game.round != -1 && myGameState.game.turn === self.state.player.id;
+
+        if(myTurn && self.state.player.id != -1){
+            self.turnMarker.classList.remove("pop-out");
+            self.turnMarker.classList.add("pop-in");
+        }
+        else if(self.turnMarker.classList.contains("pop-in")){
+            self.turnMarker.classList.remove("pop-in");
+            self.turnMarker.classList.add("pop-out");
+        }
+        //self.turnMarker.style.display = myTurn ? "block" : "none";
     }
 
     this.canPlay = (dominoValue) => {
@@ -520,6 +534,8 @@ function Train(trainState){
 }
 
 function createTrainElement(){
+    let outer = document.createElement("div");
+
     let element = document.createElement("div");
     element.classList.add("train");
 
@@ -548,9 +564,15 @@ function createTrainElement(){
     trainIcon.classList.add("train-icon");
     trainInfo.appendChild(trainIcon);
 
-    trainSpace.appendChild(element);
+    let turnMarker = document.createElement("div");
+    turnMarker.classList.add("turn-marker");
 
-    return element;
+    outer.appendChild(element);
+    outer.appendChild(turnMarker);
+
+    trainSpace.appendChild(outer);
+
+    return outer;
 }
 
 function flipDominoToValue(domino, value){
@@ -562,8 +584,8 @@ function addDominoToTrain(domino, train){
     domino.state = DominoStates.Played;
 
     // Alternate left and right container
-    const trainContainer = train.domElement.children[0].children[train.localDominos.length % 2];
-    const otherContainer = train.domElement.children[0].children[(train.localDominos.length + 1) % 2];
+    const trainContainer = train.domElement.children[0].children[0].children[train.localDominos.length % 2];
+    const otherContainer = train.domElement.children[0].children[0].children[(train.localDominos.length + 1) % 2];
 
     if(trainContainer.children.length > 0){
         trainContainer.children.item(0).style.marginBottom = "0px";

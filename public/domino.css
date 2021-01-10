@@ -58,8 +58,18 @@
     justify-content: space-evenly;
 }
 
+.turn-marker{
+    text-align: center;
+    margin-top: 5px;
+    padding: 5px;
+
+    background-color: #dedd5f;
+
+    opacity: 0;
+}
+
 .pop-in{
-    animation: pop-in 1s 1;
+    animation: pop-in 0.5s 1 forwards;
 }
 
 @keyframes pop-in {
@@ -67,6 +77,17 @@
     80% { opacity: 1; transform: scale(1.2); }
     100% { opacity: 1; transform: scale(1); }
 }
+
+.pop-out{
+    animation: pop-out 0.5s 1 forwards;
+}
+
+@keyframes pop-out {
+    0% { opacity: 1; transform: scale(1); }
+    20% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(0.5); }
+}
+
 
 .domino.must-be-satisfied{
     border: 4px solid red;

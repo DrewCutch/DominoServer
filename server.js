@@ -65,7 +65,7 @@ function GameState(game){
     const self = this;
 
     this.game = game;
-    this.state = new models.GameState([], 0);
+    this.state = new models.GameState([], -1);
     this.dominoPool = new DominoPool(game.config);
     this.playerHands = [];
 
